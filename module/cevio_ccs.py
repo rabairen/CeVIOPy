@@ -1,5 +1,6 @@
 from win32com import client
 import re
+import sys
 
 class cevioapi:
     """
@@ -7,7 +8,11 @@ class cevioapi:
     CeVIO Component Object Model -> Python
     """
     talk = client.Dispatch("CeVIO.Talk.RemoteService.Talker")
+    control = client.Dispatch("CeVIO.Talk.RemoteService.ServiceControl")
     def __init__(self):
+        # start CeVIO CCS
+        if (self.start_cevio() != 0):
+            sys.exit(1)
         # デフォルトはAvailableCastsの一覧の最初
         self.talk.Cast = self.talk.AvailableCasts.At(0)
         print(f"現在のキャスト : {self.talk.Cast}")
@@ -156,6 +161,33 @@ class cevioapi:
         for key in changed_params.keys():
             if (default_params[key] != changed_params[key]):
                 print(f"{key}: {default_params[key]} -> {changed_params[key]}")
+
+    def start_cevio(self):
+        """
+        CeVIO Creative Studio 起動
+
+        Results:
+            result (int): 起動結果(0以外はエラー)
+        """
+        # CeVIO Creative Studioが実行中か確認し、起動していない場合のみCeVIO Creative Studioを起動
+        if not (self.control.IsHostStarted):
+            result = self.control.StartHost(False)
+            if result == 0:
+                print("CeVIO Creative Studio Started.")
+            elif result == -1:
+                print("Error: Installation status is unknown.")
+            elif result == -2:
+                print("Error: Unable to find executable file.")
+            elif result == -3:
+                print("Error: Failed to start the process.")
+            elif result == -4:
+                print("Error: Application terminates with an error after starting.")
+            else:
+                print(f"Unknown Error: Error code is {result}.")
+        else:
+            result = 0
+        
+        return result
 
     def speak(self,text):
         """
