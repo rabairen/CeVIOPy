@@ -1,4 +1,5 @@
 from win32com import client
+import json
 import re
 import sys
 
@@ -7,8 +8,9 @@ class cevioapi:
     CeVIO AI 外部連携API
     CeVIO Component Object Model -> Python
     """
-    talk = client.Dispatch("CeVIO.Talk.RemoteService2.Talker2")
-    control = client.Dispatch("CeVIO.Talk.RemoteService2.ServiceControl2")
+    # API設定
+    talk = client.Dispatch("CeVIO.Talk.RemoteService2.Talker2V40")
+    control = client.Dispatch("CeVIO.Talk.RemoteService2.ServiceControl2V40")
     def __init__(self):
         # start CeVIO AI
         if (self.start_cevio() != 0):
@@ -55,7 +57,7 @@ class cevioapi:
             "Volume":self.talk.Volume,  # 音の大きさ(Int)
             "Speed":self.talk.Speed,  # 話す速さ(Int)
             "Tone":self.talk.Tone,  # 音の高さ(Int)
-            #"ToneScale":self.talk.ToneScale,  # 抑揚(何故か動かない)
+            "ToneScale":self.talk.ToneScale,  # 抑揚(Int)
             "Alpha":self.talk.Alpha  # 声質(Int)
         }
         return talkparams
@@ -73,7 +75,7 @@ class cevioapi:
             "大きさ":"Volume",
             "速さ":"Speed",
             "高さ":"Tone",
-            #"抑揚":"ToneScale",
+            "抑揚":"ToneScale",
             "声質":"Alpha"
         }
         changed_params = {}
@@ -224,8 +226,49 @@ class cevioapi:
         サンプルスピーチ設定
         """
         # さとうささら用
-        self.set_talk_params("速さ", "46")
+        self.set_talk_params("速さ", 46)
         self.set_cast_params("元気", 50)
         self.set_cast_params("普通", 70)
         self.set_cast_params("怒り", 72)
         self.set_cast_params("哀しみ", 26)
+
+    def read_json(self,filepath:str,character:str):
+        """
+        設定ファイル読み込み & キャラクター設定
+        """
+        # JSON設定ファイル読み込み
+        try:
+            with open(filepath, "r", encoding="utf-8") as f:
+                params = json.load(f)
+        except FileNotFoundError as e:
+            print(f"Error: '{filepath}'' File not found")
+            sys.exit(1)
+        # 利用可能なキャスト一覧に含まれないキャラクターを選択した場合、エラー
+        if character not in self.get_available_cast():
+            print(f"Error: '{character}' is not included in available cast.")
+            sys.exit(1)
+        # 設定ファイルに記載されていないキャラクターを選択した場合、エラー
+        if character not in params["Cast"].values():
+            print(f"Error: '{character}' is not included in JSON file.")
+            sys.exit(1)
+        
+        # Cast設定
+        self.set_cast(character)
+        
+        # コンディション設定
+        try:
+            for talktype in params["talk"]["Name"]:
+                self.set_talk_params(params["talk"]["Name"][talktype], params["talk"]["Value"][talktype])
+        except Exception:
+            print(f"Error: Condition {talktype} is an invalid value.")
+        
+        # 感情設定
+        for cast in params["Cast"]:
+                # 設定値がキャラクターと一致したときに設定変更
+            if character == params["Cast"][cast]:
+                try:
+                    for emotion in params["Emotion"][cast]["Name"]:
+                        self.set_cast_params(params["Emotion"][cast]["Name"][emotion], params["Emotion"][cast]["Value"][emotion])
+                except Exception:
+                    print(f"Error: Emotion {emotion} is an invalid value.")
+    
