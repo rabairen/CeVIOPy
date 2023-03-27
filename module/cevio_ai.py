@@ -1,22 +1,22 @@
 from win32com import client
+import json
 import re
-import sys
 
-class cevioapi:
+class Cevio:
     """
     CeVIO AI 外部連携API
     CeVIO Component Object Model -> Python
     """
-    talk = client.Dispatch("CeVIO.Talk.RemoteService2.Talker2")
-    control = client.Dispatch("CeVIO.Talk.RemoteService2.ServiceControl2")
+    # API設定
+    talk = client.Dispatch("CeVIO.Talk.RemoteService2.Talker2V40")
+    control = client.Dispatch("CeVIO.Talk.RemoteService2.ServiceControl2V40")
     def __init__(self):
         # start CeVIO AI
-        if (self.start_cevio() != 0):
-            sys.exit(1)
+        self.start_cevio()
         # デフォルトはAvailableCastsの一覧の最初
         self.talk.Cast = self.talk.AvailableCasts.At(0)
         print(f"現在のキャスト : {self.talk.Cast}")
-    
+
     def get_available_cast(self):
         """
         利用可能なキャスト一覧を出力
@@ -29,6 +29,9 @@ class cevioapi:
         for i in range(0,castlist.Length):
             result.append(castlist.At(i))
         return result
+    
+    def get_cast(self):
+        return self.talk.Cast
 
     def set_cast(self, name:str):
         """
@@ -55,12 +58,16 @@ class cevioapi:
             "Volume":self.talk.Volume,  # 音の大きさ(Int)
             "Speed":self.talk.Speed,  # 話す速さ(Int)
             "Tone":self.talk.Tone,  # 音の高さ(Int)
-            #"ToneScale":self.talk.ToneScale,  # 抑揚(何故か動かない)
+            "ToneScale":self.talk.ToneScale,  # 抑揚(Int)
             "Alpha":self.talk.Alpha  # 声質(Int)
         }
         return talkparams
 
-    def set_talk_params(self, talktype:str, value:int):
+    def set_talk_params(self, params:dict):
+        for key in params.keys():
+            self.set_talk_param(key, params[key])
+
+    def set_talk_param(self, talktype:str, value:int):
         """
         コンディションの設定
         
@@ -73,7 +80,7 @@ class cevioapi:
             "大きさ":"Volume",
             "速さ":"Speed",
             "高さ":"Tone",
-            #"抑揚":"ToneScale",
+            "抑揚":"ToneScale",
             "声質":"Alpha"
         }
         changed_params = {}
@@ -90,7 +97,7 @@ class cevioapi:
                 print("valueは0～100の整数値を渡してください")
         else:
             print("Conditionが一覧に含まれていません。以下から選択してください。")
-            print(",".join(default_params.keys()))
+            print(",".join(trans_dict.keys()))
         # パラメータ差分表示
         for key in changed_params.keys():
             if (default_params[key] != changed_params[key]):
@@ -133,8 +140,12 @@ class cevioapi:
             tmp = castparams.At(i)
             emotionparams[tmp.Name] = tmp.Value
         return emotionparams
+    
+    def set_cast_params(self, emotions:dict):
+        for key in emotions.keys():
+            self.set_cast_param(key,emotions[key])
 
-    def set_cast_params(self,emotion,value):
+    def set_cast_param(self,emotion,value):
         """
         感情パラメータの設定
 
@@ -150,11 +161,11 @@ class cevioapi:
                 if (int(value) >= 0 and int(value) <= 100):
                     self.talk.Components.ByName(emotion).Value = int(value)
                 else:
-                    print("valueは0～100の整数値を渡してください")
+                    print("value must be an integer between 0 and 100.")
             else:
-                print("valueは0～100の整数値を渡してください")
+                print("value must be an integer between 0 and 100.")
         else:
-            print("emotionが一覧に含まれていません。以下から選択してください。")
+            print("emotion is not included in the list. Please select it below.")
             print(",".join(default_params.keys()))
         # パラメータ差分表示
         changed_params = self.get_cast_params()
@@ -175,15 +186,15 @@ class cevioapi:
             if result == 0:
                 print("CeVIO AI Started.")
             elif result == -1:
-                print("Error: Installation status is unknown.")
+                raise CevioException("Error: Installation status is unknown.")
             elif result == -2:
-                print("Error: Unable to find executable file.")
+                raise CevioException("Error: Unable to find executable file.")
             elif result == -3:
-                print("Error: Failed to start the process.")
+                raise CevioException("Error: Failed to start the process.")
             elif result == -4:
-                print("Error: Application terminates with an error after starting.")
+                raise CevioException("Error: Application terminates with an error after starting.")
             else:
-                print(f"Unknown Error: Error code is {result}.")
+                raise CevioException(f"Unknown Error: Error code is {result}.")
         else:
             result = 0
         
@@ -224,8 +235,45 @@ class cevioapi:
         サンプルスピーチ設定
         """
         # さとうささら用
-        self.set_talk_params("速さ", "46")
-        self.set_cast_params("元気", 50)
-        self.set_cast_params("普通", 70)
-        self.set_cast_params("怒り", 72)
-        self.set_cast_params("哀しみ", 26)
+        self.set_talk_param("速さ", 46)
+        self.set_cast_param("元気", 50)
+        self.set_cast_param("普通", 70)
+        self.set_cast_param("怒り", 72)
+        self.set_cast_param("哀しみ", 26)
+
+    def read_json(self,filepath:str):
+        """
+        設定ファイル読み込み & キャラクター設定
+        """
+        # JSON設定ファイル読み込み
+        try:
+            with open(filepath, "r", encoding="utf-8") as f:
+                params = json.load(f)
+        except FileNotFoundError as e:
+            raise CevioException(f"Error: '{filepath}'' File not found")
+        # 利用可能なキャスト一覧に含まれないキャラクターを選択した場合、エラー
+        if params["Cast"] not in self.get_available_cast():
+            raise CevioException(f"Error: {params['Cast']} is not included in available cast.")
+        
+        # Cast設定
+        self.set_cast(params["Cast"])
+        
+        # コンディション設定
+        try:
+            for talktype in params["talk"]["Name"]:
+                self.set_talk_param(params["talk"]["Name"][talktype], params["talk"]["Value"][talktype])
+        except Exception:
+            print(f"Error: Condition {talktype} is an invalid value.")
+        
+        # 感情設定
+        try:
+            for emotion in params["Emotion"].keys():
+                self.set_cast_param(emotion, params["Emotion"][emotion])
+        except Exception:
+            print(f"Error: Emotion {emotion} is an invalid value.")
+
+class CevioException(Exception):
+    '''
+    例外：CeVIO処理全般エラー
+    '''
+    pass
