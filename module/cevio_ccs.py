@@ -15,6 +15,8 @@ class Cevio:
         self.start_cevio()
         # デフォルトはAvailableCastsの一覧の最初
         self.talk.Cast = self.talk.AvailableCasts.At(0)
+        if (self.talk.Cast is None):
+           raise CevioException(f"Initial cast cannot be selected. If the specified character does not exist in the following cast list, please check for a license. [{','.join(self.get_available_cast())}]")
         print(f"現在のキャスト : {self.talk.Cast}")
 
     def get_available_cast(self):
@@ -23,7 +25,14 @@ class Cevio:
 
         Returns:
             result (list): 利用可能なキャスト名
+
+        Raises :
+          CevioException : CeVIOが起動していない場合の例外
         """
+
+        # CeVIO起動チェック
+        self._check_cevio_status()
+
         castlist = self.talk.AvailableCasts
         result = []
         for i in range(0,castlist.Length):
@@ -39,7 +48,14 @@ class Cevio:
 
         Args:
             name (str): キャスト名
+
+        Raises :
+          CevioException : CeVIOが起動していない場合の例外
         """
+
+        # CeVIO起動チェック
+        self._check_cevio_status()
+
         castlist = self.get_available_cast()
         if (name in castlist):
             self.talk.Cast = name
@@ -53,7 +69,14 @@ class Cevio:
         
         Returns:
             talkparams (dict): コンディション設定一覧
+
+        Raises :
+          CevioException : CeVIOが起動していない場合の例外
         """
+
+        # CeVIO起動チェック
+        self._check_cevio_status()
+
         talkparams = {
             "Volume":self.talk.Volume,  # 音の大きさ(Int)
             "Speed":self.talk.Speed,  # 話す速さ(Int)
@@ -131,7 +154,14 @@ class Cevio:
 
         Returns:
             emotionparams (dict): コンディション設定一覧
+
+        Raises :
+          CevioException : CeVIOが起動していない場合の例外
         """
+
+        # CeVIO起動チェック
+        self._check_cevio_status()
+
         # 感情パラメータ取得
         castparams = self.talk.Components
         emotionparams = {}
@@ -184,7 +214,7 @@ class Cevio:
         if not (self.control.IsHostStarted):
             result = self.control.StartHost(False)
             if result == 0:
-                print("CeVIO AI Started.")
+                print("CeVIO Creative Studio Started.")
             elif result == -1:
                 raise CevioException("Error: Installation status is unknown.")
             elif result == -2:
@@ -206,7 +236,14 @@ class Cevio:
 
         Args:
             text (str): セリフ
+
+        Raises :
+          CevioException : CeVIOが起動していない、もしくは利用可能なキャスト一覧に含まれていない場合の例外
         """
+
+        # CeVIO起動チェック
+        self._check_cevio_status()
+
         # CeVIO Creative Studio は100文字までのため、別途文字の切り詰め
         speech_list = self._text_split(text,100)
         # 出だしは発音が聞こえないため、隠し文字を付加
@@ -244,7 +281,14 @@ class Cevio:
     def read_json(self,filepath:str):
         """
         設定ファイル読み込み & キャラクター設定
+
+        Raises :
+          CevioException : CeVIOが起動していない、もしくは利用可能なキャスト一覧に含まれていない場合の例外
         """
+
+        # CeVIO起動チェック
+        self._check_cevio_status()
+
         # JSON設定ファイル読み込み
         try:
             with open(filepath, "r", encoding="utf-8") as f:
@@ -271,6 +315,16 @@ class Cevio:
                 self.set_cast_param(emotion, params["Emotion"][emotion])
         except Exception:
             print(f"Error: Emotion {emotion} is an invalid value.")
+
+    def _check_cevio_status(self) -> None:
+        """
+        CeVIO起動状態チェック
+
+        Raises :
+          CevioException : CeVIOが起動していない場合の例外
+        """
+        if not (self.control.IsHostStarted):
+            raise CevioException("CeVIO is not running.")
 
 class CevioException(Exception):
     '''
