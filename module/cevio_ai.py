@@ -276,4 +276,8 @@ class CevioException(Exception):
     '''
     例外：CeVIO処理全般エラー
     '''
-    pass
+    def __init__(self, message) ->None:
+        self._messege = f'Error : {message}'
+
+    def __str__(self) -> None:
+        return self._messege
