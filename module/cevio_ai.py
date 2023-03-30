@@ -245,8 +245,6 @@ class Cevio:
 
         # CeVIO AI は200文字までのため、別途文字の切り詰め
         speech_list = self._text_split(text,200)
-        # 出だしは発音が聞こえないため、隠し文字を付加
-        speech_list.insert(0, "っ")
         for speech in speech_list:
             print(f"{self.talk.Cast} > {speech}")
             result = self.talk.Speak(speech)
