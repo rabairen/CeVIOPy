@@ -17,7 +17,7 @@ class Cevio:
         self.talk.Cast = self.talk.AvailableCasts.At(0)
         if (self.talk.Cast is None):
            raise CevioException(f"Initial cast cannot be selected. If the specified character does not exist in the following cast list, please check for a license. [{','.join(self.get_available_cast())}]")
-        print(f"現在のキャスト : {self.talk.Cast}")
+        print(f"Cast : {self.talk.Cast}")
 
     def get_available_cast(self):
         """
@@ -60,8 +60,7 @@ class Cevio:
         if (name in castlist):
             self.talk.Cast = name
         else:
-            print("Castが一覧に含まれていません。以下から選択してください。")
-            print(",".join(castlist))
+            print(f"Cast is not included in the list. Please select from the following : [{''.join(castlist)}]")
 
     def get_talk_params(self):
         """
@@ -115,12 +114,12 @@ class Cevio:
                     changed_params[trans_dict[talktype]] = int(value)
                     self._change_talk_param(trans_dict[talktype], changed_params[trans_dict[talktype]])
                 else:
-                    print("valueは0～100の整数値を渡してください")
+                    print("value must be an integer between 0 and 100.")
             else:
-                print("valueは0～100の整数値を渡してください")
+                print("value must be an integer between 0 and 100.")
         else:
-            print("Conditionが一覧に含まれていません。以下から選択してください。")
-            print(",".join(trans_dict.keys()))
+            print(f"Condition is not included in the list. Please select from the following: [{','.join(trans_dict.keys())}]")
+
         # パラメータ差分表示
         for key in changed_params.keys():
             if (default_params[key] != changed_params[key]):
@@ -216,15 +215,15 @@ class Cevio:
             if result == 0:
                 print("CeVIO Creative Studio Started.")
             elif result == -1:
-                raise CevioException("Error: Installation status is unknown.")
+                raise CevioException("Installation status is unknown.")
             elif result == -2:
-                raise CevioException("Error: Unable to find executable file.")
+                raise CevioException("Unable to find executable file.")
             elif result == -3:
-                raise CevioException("Error: Failed to start the process.")
+                raise CevioException("Failed to start the process.")
             elif result == -4:
-                raise CevioException("Error: Application terminates with an error after starting.")
+                raise CevioException("Application terminates with an error after starting.")
             else:
-                raise CevioException(f"Unknown Error: Error code is {result}.")
+                raise CevioException(f"Unknown Error code is {result}.")
         else:
             result = 0
         
@@ -246,8 +245,6 @@ class Cevio:
 
         # CeVIO Creative Studio は100文字までのため、別途文字の切り詰め
         speech_list = self._text_split(text,100)
-        # 出だしは発音が聞こえないため、隠し文字を付加
-        speech_list.insert(0, "っ")
         for speech in speech_list:
             print(f"{self.talk.Cast} > {speech}")
             result = self.talk.Speak(speech)
@@ -294,10 +291,10 @@ class Cevio:
             with open(filepath, "r", encoding="utf-8") as f:
                 params = json.load(f)
         except FileNotFoundError as e:
-            raise CevioException(f"Error: '{filepath}'' File not found")
+            raise CevioException(f"'{filepath}'' File not found")
         # 利用可能なキャスト一覧に含まれないキャラクターを選択した場合、エラー
         if params["Cast"] not in self.get_available_cast():
-            raise CevioException(f"Error: {params['Cast']} is not included in available cast.")
+            raise CevioException(f"{params['Cast']} is not included in available cast.")
         
         # Cast設定
         self.set_cast(params["Cast"])
@@ -307,14 +304,14 @@ class Cevio:
             for talktype in params["talk"]["Name"]:
                 self.set_talk_param(params["talk"]["Name"][talktype], params["talk"]["Value"][talktype])
         except Exception:
-            print(f"Error: Condition {talktype} is an invalid value.")
+            print(f"Condition {talktype} is an invalid value.")
         
         # 感情設定
         try:
             for emotion in params["Emotion"].keys():
                 self.set_cast_param(emotion, params["Emotion"][emotion])
         except Exception:
-            print(f"Error: Emotion {emotion} is an invalid value.")
+            print(f"Emotion {emotion} is an invalid value.")
 
     def _check_cevio_status(self) -> None:
         """
