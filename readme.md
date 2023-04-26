@@ -80,12 +80,23 @@ Python上でCeVIO AIのトーク機能を利用するモジュール群です。
 ## 利用方法
 
 ### 依存パッケージ導入
-- pywin32
+
+- リポジトリクローン後、下記コマンドを実行します。
+
     ```
-    pip install pywin32
+    py -m pip install --user -r requirements.txt
     ```
 
-### 利用方法
+    - `Successfully installed pywin32-306`と表示されること
+
+### 動作を確認する場合
+
+- 動作を確認してみたい場合、`py sample_code.py`を実行することで、CeVIO AIが起動し、インストールされているキャラクターの声でサンプルテキスト`sample_text.txt`に記載されている文章を再生します。
+
+### 拡張する場合
+
+- 自分のコードに組み込む、または各種連携(例: ChatGPTのAPIと連携させる)場合、下記の手順でインポートが可能です。
+
 1. インポート
    - CeVIO AIを利用した場合
 
