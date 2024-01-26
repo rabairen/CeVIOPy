@@ -1,12 +1,12 @@
 from os import read
-from module.cevio_ai import Cevio, CevioException
+from module.cevio import Cevio, CevioException
 
 def main():
     """
     サンプルテキスト
-    cevio_ai.pyをそのまま実行するとサンプルテキストを再生します(さとうささらボイスのみ対応)
+    cevio.pyをそのまま実行するとサンプルテキストを再生します(さとうささらボイスのみ対応)
     """
-    t = Cevio()
+    t = Cevio(mode="AI")
     # さとうささらのトークを利用されている方のみ、次行のサンプルを利用可能です。
     # t.make_speech_mode()
     print(t.get_talk_params())

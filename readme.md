@@ -5,17 +5,19 @@ Python上でCeVIO AIのトーク機能を利用するモジュール群です。
 
 ## フォルダ構成
 - module/
-    - cevio_ai.py
+    - cevio.py
+        - 下記2つを1つにまとめたもの
+    - cevio_ai.py(非推奨)
         - CeVIO AIを利用する際のモジュール
-    - cevio_ccs.py
+    - cevio_ccs.py(非推奨)
         - CeVIO Creative Studioを利用する際のモジュール
 
 - sample_code.py
     - サンプルコード
     - CeVIO Creative Studioをご利用の方
-        - 2行目を下記のとおりに書き換えてください
+        - 9行目を下記のに書き換えてください
         ```py
-        from module.cevio_ccs import cevioapi
+        t = Cevio(mode="CCS") # AI→CCSに変更
         ```
     - CeVIO AIで「さとうささら」をご利用の方
         - 11行目の`t.make_speech_mode()`のコメントアウトを外していただくと、サンプル設定で読み上げます
@@ -38,8 +40,8 @@ Python上でCeVIO AIのトーク機能を利用するモジュール群です。
 
 4. セリフ再生
     - 与えられたテキストをもとに、セリフを再生します。
-    - CeVIO AIでは、200文字以上のテキストを再生する場合、分割する必要があるため文章の「、」や「。」などが入るところで、文章を区切るよう設計しています。
-    - 現在は200文字以上「区切り文字」がない文章を入力するとエラーとなってしまうので、文章を入力する際はご注意ください
+    - CeVIO AIでは200文字、Creative Studioでは100文字以上のテキストを再生する場合、テキストを分割する必要があります。このモジュールでは最大文字数に一番近い部分の文章の「、」や「。」などが入るところで、文章を区切るよう設計しています。
+    - 文字数制限以上の「区切り文字」がない文章を入力するとエラーとなってしまうので、文章を入力する際はご注意ください
         - 現在設定している区切り文字一覧
             - 読点「、」「，」「,」
             - 句点「。」「．」「.」
@@ -47,7 +49,6 @@ Python上でCeVIO AIのトーク機能を利用するモジュール群です。
             - 改行文字
             - タブ文字
             - 空白文字「 」「　」
-    - CeVIO Creative Studioをご利用の方は、「cevio_ccs.py」をインポートの上、ご利用ください。
 
 5. パラメータの設定保存
     - パラメータ情報をjson形式で保存可能です。
@@ -65,13 +66,13 @@ Python上でCeVIO AIのトーク機能を利用するモジュール群です。
             - 感情名 : 感情の設定値(0～100)
 
 ## 確認済み動作環境
-- Windows 10 Home 22H2
+- Windows 11 Home 22H2
 
-- Python 3.9.2
-    - pywin32 301
+- Python 3.10.6
+    - pywin32 306
 
-- CeVIO AI 8.1.8.0
-    - さとうささら トークボイス 1.0.0
+- CeVIO AI 9.0.2.0
+    - さとうささら トークボイス 2.0.0
 
 - CeVIO Creative Studio 7.0.23.1
     - さとうささら トークボイス 1.7.3
@@ -102,20 +103,20 @@ Python上でCeVIO AIのトーク機能を利用するモジュール群です。
 
         ```py
         # 読み込む場合、Cevio(メインの処理クラス)、CevioException(全般エラー)を読み込む
-        from module.cevio_ai import Cevio, CevioException
+        from module.cevio import Cevio, CevioException
 
         # 初期化(この時点でCeVIO AIが起動していない場合、自動で起動)
-        talk = Cevio()
+        talk = Cevio("AI")
         ## > 現在のキャスト : さとうささら(起動時にCeVIOで登録済みのトークボイスからキャラクターを取得)
         ```
     - CeVIO Creative Studioを利用した場合
 
         ```py
         # 読み込む場合、Cevio(メインの処理クラス)、CevioException(全般エラー)を読み込む
-        from module.cevio_ccs import Cevio, CevioException
+        from module.cevio import Cevio, CevioException
 
         # 初期化(この時点でCeVIO Creative Studioが起動していない場合、自動で起動)
-        talk = Cevio()
+        talk = Cevio("CCS")
         ## > 現在のキャスト : さとうささら(起動時にCeVIOで登録済みのトークボイスからキャラクターを取得)
         ```
 
