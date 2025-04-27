@@ -125,14 +125,14 @@ Python上でCeVIO AIのトーク機能を利用するモジュール群です。
         ```
 
 2. キャラクター設定
-   
+
    - キャラクターの確認
 
         ```py
         # 利用可能なキャラクター一覧を取得し、List形式で出力
         talk.get_available_cast()
         ## > ['さとうささら', 'すずきつづみ', 'タカハシ']
-        
+
         # 現在のキャラクター設定
         talk.get_cast()
         ## > 'さとうささら'
@@ -168,11 +168,11 @@ Python上でCeVIO AIのトーク機能を利用するモジュール群です。
         ## > Speed: 50 -> 30
 
         # 存在しない値を入力した場合エラー
-        talk.set_talk_param("Speed", 4000) 
+        talk.set_talk_param("Speed", 4000)
         ## > valueは0～100の整数値を渡してください
 
         # 存在しないパラメータを入力した場合エラー
-        talk.set_talk_param("Speedy", 10)  
+        talk.set_talk_param("Speedy", 10)
         ## > Condition is not included in the list. Please select from the following: [Volume,Speed,Tone,ToneScale,Alpha]
 
         # dict形式で渡す場合、「set_talk_params」を使用
@@ -185,15 +185,15 @@ Python上でCeVIO AIのトーク機能を利用するモジュール群です。
 
         ```py
         # 感情設定
-        talk.set_cast_param('元気', 60) 
+        talk.set_cast_param('元気', 60)
         ## > 元気: 100 -> 60
 
         # 存在しない値を入力した場合エラー
-        talk.set_cast_param('元気', 600)  
+        talk.set_cast_param('元気', 600)
         ## > value must be an integer between 0 and 100.
 
         # 存在しないパラメータを入力した場合エラー
-        talk.set_cast_param('かわいさ', 100) 
+        talk.set_cast_param('かわいさ', 100)
         ## > emotion is not included in the list. Please select it below.
         ## > 元気,普通,怒り,哀しみ
 
@@ -203,8 +203,43 @@ Python上でCeVIO AIのトーク機能を利用するモジュール群です。
         ## > 普通: 0 -> 60
         ```
 
-4. トーク
-   
+4. キャスト情報一括設定
+    - JSONファイル読み込み、もしくは辞書形式でデータを読み込むことでまとめて設定が可能です。
+
+        ```py
+        # ファイル読み込み
+        talk.read_json(filename="config.json")
+        ## 普通: 0 -> 50
+        ## 元気: 100 -> 50
+        ## 怒り: 0 -> 50
+        ## 哀しみ: 0 -> 50
+
+        # 辞書形式
+        talk.read_dict(
+            {
+                "talk":{
+                    "Volume":80,
+                    "Speed":40,
+                    "Tone":50,
+                    "ToneScale":50,
+                    "Alpha":1000
+                },
+                "Cast":"さとうささら",
+                "Emotion":{
+                    "普通":50,
+                    "元気":50,
+                    "怒り":50,
+                    "哀しみ":50
+                }
+            }
+        )
+        ## Volume: 50 -> 80
+        ## Speed: 50 -> 40
+        ## Condition Alpha value must be an integer between 0 and 100.
+        ```
+
+5. トーク
+
     ```py
     # 短文の場合、speak()に文章を入力すると音声出力
     # CeVIO AIの場合、「、」「。」などの文章の切れ目が200文字となるところで処理を自動分割(APIの仕様)
