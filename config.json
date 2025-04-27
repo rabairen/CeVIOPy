@@ -1,19 +1,10 @@
 {
     "talk":{
-        "Name":{
-            "Volume":"大きさ",
-            "Speed":"速さ",
-            "Tone":"高さ",
-            "ToneScale":"抑揚",
-            "Alpha":"声質"
-        },
-        "Value":{
-            "Volume":50,
-            "Speed":50,
-            "Tone":50,
-            "ToneScale":50,
-            "Alpha":50
-        }
+        "Volume":50,
+        "Speed":50,
+        "Tone":50,
+        "ToneScale":50,
+        "Alpha":50
     },
     "Cast":"さとうささら",
     "Emotion":{
