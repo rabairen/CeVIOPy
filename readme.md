@@ -156,20 +156,27 @@ Python上でCeVIO AIのトーク機能を利用するモジュール群です。
 
         ```py
         # トークの設定
+        talk.set_talk_param("Speed", 50)
+        ## > Speed: 30 -> 50
+        # 日本語可(以下の通り変換)
+        ## "大きさ" -> "Volume"
+        ## "速さ" -> "Speed"
+        ## "高さ" -> "Tone"
+        ## "抑揚" -> "ToneScale"
+        ## "声質" -> "Alpha"
         talk.set_talk_param("速さ", 30)
         ## > Speed: 50 -> 30
 
         # 存在しない値を入力した場合エラー
-        talk.set_talk_param("速さ", 4000) 
+        talk.set_talk_param("Speed", 4000) 
         ## > valueは0～100の整数値を渡してください
 
         # 存在しないパラメータを入力した場合エラー
-        talk.set_talk_param("素早さ", 10)  
-        ## > Conditionが一覧に含まれていません。以下から選択してください。
-        ## > 大きさ,速さ,高さ,抑揚,声質
+        talk.set_talk_param("Speedy", 10)  
+        ## > Condition is not included in the list. Please select from the following: [Volume,Speed,Tone,ToneScale,Alpha]
 
         # dict形式で渡す場合、「set_talk_params」を使用
-        talk.set_talk_params({"速さ": 60, "大きさ": 60})
+        talk.set_talk_params({"Speed": 60, "Volume": 60})
         ## > Speed: 50 -> 60
         ## > Volume: 50 -> 60
         ```

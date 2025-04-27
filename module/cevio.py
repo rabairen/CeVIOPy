@@ -141,6 +141,10 @@ class Cevio:
         Args:
             talktype (str): コンディションの指定
             value (int): コンディションの値
+
+        Raises :
+            CevioException : CeVIOが起動していない場合の例外
+            ValueError : 値が数値でない場合
         """
         default_params = self.get_talk_params()
         trans_dict = {
@@ -151,19 +155,24 @@ class Cevio:
             "声質":"Alpha"
         }
         changed_params = {}
+
+        # コンディションに和名が含まれている場合
+        if (talktype in trans_dict.keys()):
+            # talkTypeを英語名に上書き
+            talktype = trans_dict[talktype]
         # コンディション一覧に含まれているもののみ
-        if (talktype in trans_dict):
+        if (talktype in trans_dict.values()):
             # 整数値のみ
             if (self._is_int(value)):
                 if (int(value) >= 0 and int(value) <= 100):
-                    changed_params[trans_dict[talktype]] = int(value)
-                    self._change_talk_param(trans_dict[talktype], changed_params[trans_dict[talktype]])
+                    changed_params[talktype] = int(value)
+                    self._change_talk_param(talktype, changed_params[talktype])
                 else:
                     print("value must be an integer between 0 and 100.")
             else:
                 print("value must be an integer between 0 and 100.")
         else:
-            print(f"Condition is not included in the list. Please select from the following: [{','.join(trans_dict.keys())}]")
+            print(f"Condition is not included in the list. Please select from the following: [{','.join(trans_dict.values())}]")
 
         # パラメータ差分表示
         for key in changed_params.keys():
