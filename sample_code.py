@@ -1,5 +1,5 @@
 from os import read
-from module.cevio import Cevio, CevioException
+from src.ceviopy import Cevio, CevioException
 
 def main():
     """
