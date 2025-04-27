@@ -36,7 +36,7 @@ class Cevio:
             self._params = self._ccs_params
         else:
             raise CevioException("mode must be 'AI' or 'CCS'.")
-        
+
         # APIオブジェクト生成
         self.talk = client.Dispatch(self._params["talk_module"])
         self.control = client.Dispatch(self._params["control_module"])
@@ -68,7 +68,7 @@ class Cevio:
         for i in range(0,castlist.Length):
             result.append(castlist.At(i))
         return result
-    
+
     def get_cast(self):
         """
         現在のキャストを出力
@@ -98,13 +98,14 @@ class Cevio:
         castlist = self.get_available_cast()
         if (name in castlist):
             self.talk.Cast = name
+            print(f"Cast : {self.get_cast()}")
         else:
             print(f"Cast is not included in the list. Please select from the following : [{''.join(castlist)}]")
 
     def get_talk_params(self):
         """
         コンディションを取得(キャストに関わらず共通)
-        
+
         Returns:
             talkparams (dict): コンディション設定一覧
 
@@ -137,7 +138,7 @@ class Cevio:
     def set_talk_param(self, talktype:str, value:int):
         """
         コンディションの設定
-        
+
         Args:
             talktype (str): コンディションの指定
             value (int): コンディションの値
@@ -168,11 +169,11 @@ class Cevio:
                     changed_params[talktype] = int(value)
                     self._change_talk_param(talktype, changed_params[talktype])
                 else:
-                    print("value must be an integer between 0 and 100.")
+                    print(f"Condition {talktype} value must be an integer between 0 and 100.")
             else:
-                print("value must be an integer between 0 and 100.")
+                print(f"Condition {talktype} value must be an integer between 0 and 100.")
         else:
-            print(f"Condition is not included in the list. Please select from the following: [{','.join(trans_dict.values())}]")
+            print(f"Condition {talktype} is not included in the list. Please select from the following: [{','.join(trans_dict.values())}]")
 
         # パラメータ差分表示
         for key in changed_params.keys():
@@ -223,7 +224,7 @@ class Cevio:
             tmp = castparams.At(i)
             emotionparams[tmp.Name] = tmp.Value
         return emotionparams
-    
+
     def set_cast_params(self, emotions:dict):
         for key in emotions.keys():
             self.set_cast_param(key,emotions[key])
@@ -244,11 +245,11 @@ class Cevio:
                 if (int(value) >= 0 and int(value) <= 100):
                     self.talk.Components.ByName(emotion).Value = int(value)
                 else:
-                    print("value must be an integer between 0 and 100.")
+                    print(f"Emotion {emotion} value must be an integer between 0 and 100.")
             else:
-                print("value must be an integer between 0 and 100.")
+                print(f"Emotion {emotion} value must be an integer between 0 and 100.")
         else:
-            print("emotion is not included in the list. Please select it below.")
+            print(f"emotion {emotion} is not included in the list. Please select it below.")
             print(",".join(default_params.keys()))
         # パラメータ差分表示
         changed_params = self.get_cast_params()
@@ -280,7 +281,7 @@ class Cevio:
                 raise CevioException(f"Unknown Error code is {result}.")
         else:
             result = 0
-        
+
         return result
 
     def speak(self,text):
@@ -349,23 +350,49 @@ class Cevio:
         # 利用可能なキャスト一覧に含まれないキャラクターを選択した場合、エラー
         if params["Cast"] not in self.get_available_cast():
             raise CevioException(f"{params['Cast']} is not included in available cast.")
-        
+
         # Cast設定
         self.set_cast(params["Cast"])
-        
+
         # コンディション設定
         try:
-            for talktype in params["talk"]["Name"]:
-                self.set_talk_param(params["talk"]["Name"][talktype], params["talk"]["Value"][talktype])
+            self.set_talk_params(params["talk"])
         except Exception:
-            print(f"Condition {talktype} is an invalid value.")
-        
+            print(f"Condition is an invalid value.")
+
         # 感情設定
         try:
-            for emotion in params["Emotion"].keys():
-                self.set_cast_param(emotion, params["Emotion"][emotion])
+            self.set_cast_params(params["Emotion"])
         except Exception:
-            print(f"Emotion {emotion} is an invalid value.")
+            print(f"Emotion is an invalid value.")
+
+    def read_dict(self, params: dict):
+        """
+        設定辞書読み込み & キャラクター設定
+
+        Args:
+            params (dict): 設定用dict:
+                           'Cast' (str): キャスト名
+                           'talk' (dict): コンディション設定を含む辞書
+                                             {'Volume': 50, ...}
+                           'Emotion' (dict): 感情設定を含む辞書
+                                             {'元気': 50, '普通': 70, ...}
+        """
+        # CeVIO起動チェック
+        self._check_cevio_status()
+
+        # --- パラメータ検証と設定 ---
+        if "Cast" in params:
+            # Cast設定
+            self.set_cast(params["Cast"])
+
+        # コンディション設定
+        if "talk" in params:
+            self.set_talk_params(params["talk"])
+
+        # 感情設定
+        if "Emotion" in params:
+            self.set_cast_params(params["Emotion"])
 
     def _check_cevio_status(self) -> None:
         """
