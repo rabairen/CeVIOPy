@@ -4,8 +4,12 @@ Python上でCeVIO AIのトーク機能を利用するモジュール群です。
 
 
 ## フォルダ構成
-- module/
+- ceviopy/ (**推奨**)
     - cevio.py
+        - CeVIO AI、CeVIO Creative Studioを利用する際のモジュール
+
+- module/ (**非推奨**)
+    - cevio.py(非推奨)
         - 下記2つを1つにまとめたもの
     - cevio_ai.py(非推奨)
         - CeVIO AIを利用する際のモジュール
@@ -66,12 +70,12 @@ Python上でCeVIO AIのトーク機能を利用するモジュール群です。
             - 感情名 : 感情の設定値(0～100)
 
 ## 確認済み動作環境
-- Windows 11 Home 22H2
+- Windows 11 Home 24H2
 
-- Python 3.10.6
-    - pywin32 306
+- Python 3.13.3
+    - pywin32 310
 
-- CeVIO AI 9.0.2.0
+- CeVIO AI 9.1.17.0
     - さとうささら トークボイス 2.0.0
 
 - CeVIO Creative Studio 7.0.23.1
@@ -88,7 +92,7 @@ Python上でCeVIO AIのトーク機能を利用するモジュール群です。
     py -m pip install --user -r requirements.txt
     ```
 
-    - `Successfully installed pywin32-306`と表示されること
+    - `Successfully installed pywin32-310`と表示されること
 
 ### 動作を確認する場合
 
@@ -103,7 +107,7 @@ Python上でCeVIO AIのトーク機能を利用するモジュール群です。
 
         ```py
         # 読み込む場合、Cevio(メインの処理クラス)、CevioException(全般エラー)を読み込む
-        from module.cevio import Cevio, CevioException
+        from ceviopy.cevio import Cevio, CevioException
 
         # 初期化(この時点でCeVIO AIが起動していない場合、自動で起動)
         talk = Cevio("AI")
@@ -113,7 +117,7 @@ Python上でCeVIO AIのトーク機能を利用するモジュール群です。
 
         ```py
         # 読み込む場合、Cevio(メインの処理クラス)、CevioException(全般エラー)を読み込む
-        from module.cevio import Cevio, CevioException
+        from ceviopy.cevio import Cevio, CevioException
 
         # 初期化(この時点でCeVIO Creative Studioが起動していない場合、自動で起動)
         talk = Cevio("CCS")
